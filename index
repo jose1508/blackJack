@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+            <title>
+                Document
+            </title>
+        </meta>
+
+	<script type="text/javascript">
+		
+		var baraja = new Array();
+		var rango = ["2","3","4","5","6","7","8","9","10","11","Jack","Queen","King","As"];
+		var tipo = ["Espadas", "Corazones", "Diamantes", "Trebol"];
+
+		//Crear Baraja
+		function crearBaraja(){
+			baraja = new Array();
+			for(var i = 0; i < rango.length; i++){
+				for(var j = 0; j < tipo.length; j++){
+					//Obtenemos el valor de las cartas
+					var valor = parseInt(rango[i]);
+					if(rango[i] == "Jack" || rango[i] == "Queen" || rango[i] == "King")	
+						valor = 10;
+					if(rango[i] == "As")
+						valor = 11
+
+					//Almacenamos la carta en la baraja
+					var carta = { Carta: rango[i], Tipo: tipo[j], Valor: valor};
+					baraja.push(carta);
+				}	
+			}
+		}
+
+
+
+
+	</script>
+	
+
+    </head>
+    <body>
+		
+
+
+
+    </body>
+</html>
