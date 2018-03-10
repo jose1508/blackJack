@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+            <title>
+                Document
+            </title>
+        </meta>
+        <script type="text/javascript">
+            var baraja = new Array();
+		var rango = ["2","3","4","5","6","7","8","9","10","11","Jack","Queen","King","As"];
+		var tipo = ["Espadas", "Corazones", "Diamantes", "Trebol"];
+		var jugadores = new Array();
+		var currentPlayer = 0;
+
+
+
+		//Crear Baraja
+		function crearBaraja(){
+			baraja = new Array();
+			for(var i = 0; i < rango.length; i++){
+				for(var j = 0; j < tipo.length; j++){
+					//Obtenemos el valor de las cartas
+					var valor = parseInt(rango[i]);
+					if(rango[i] == "Jack" || rango[i] == "Queen" || rango[i] == "King")	
+						valor = 10;
+					if(rango[i] == "As")
+						valor = 11
+
+					//Almacenamos la carta en la baraja
+					var carta = { Carta: rango[i], Tipo: tipo[j], Valor: valor};
+					baraja.push(carta);
+				}	
+			}
+		}
+
+		//Reborujar baraja
+		function shuffle(){
+			for(var i = 0; i < 1000; i++){
+				var carta1 = Math.floor((Math.random() * baraja.length));
+            	var carta2 = Math.floor((Math.random() * baraja.length));
+            	var tmp = baraja[carta1];
+
+            	baraja[carta1] = baraja[carta2];
+            	baraja[carta2] = tmp;
+			}
+		}
+
+
+
+		//Crear Jugadores
+		function createPlayers(num){
+			jugadores = new Array();
+			for(var i=1; i <= num; i++){
+				var mano = new Array();
+				var jugador = {Nombre: 'Jugador' + i, ID: i, Puntos: 0, Mano: mano };
+				jugadores.push(jugador);
+			}
+		}
+
+		function createPlayersUI()
+        {
+            document.getElementById('players').innerHTML = '';
+            for(var i = 0; i < jugadores.length; i++)
+            {
+                var div_player = document.createElement('div');
+                var div_playerid = document.createElement('div');
+                var div_hand = document.createElement('div');
+                var div_points = document.createElement('div');
+
+                div_points.className = 'points';
+                div_points.id = 'points_' + i;
+                div_player.id = 'player_' + i;
+                div_player.className = 'player';
+                div_hand.id = 'hand_' + i;
+
+                div_playerid.innerHTML = jugadores[i].ID;
+                div_player.appendChild(div_playerid);
+                div_player.appendChild(div_hand);
+                div_player.appendChild(div_points);
+                document.getElementById('players').appendChild(div_player);
+            }
+        }
+
+
+
+        //Repartir manos
+        function repartirManos(){
+	        
+	        for(var i = 0; i < 2; i++){
+	            for (var x = 0; x < jugadores.length; x++){
+	                var carta = baraja.pop();
+	                jugadores[x].Mano.push(carta);
+	                entregarCarta(carta, x);
+	                updatePoints();
+	            }
+	        }
+	        updateBaraja();
+	    }
+
+	    //Entregar Cartas
+	    function entregarCarta(carta, jugador){
+	        var hand = document.getElementById('hand_' + jugador);
+	        hand.appendChild(getCardUI(carta));
+    	}
+    	//Obtener carta
+	    function getCardUI(carta){
+	        var el = document.createElement('div');
+	        el.className = 'card';
+	        el.innerHTML = carta.Tipo + ' ' + carta.Valor;
+	        return el;
+	    }
+
+	    // Retorna los puntos del jugador
+        function getPoints(jugador)
+        {
+            var points = 0;
+            for(var i = 0; i < jugadores[jugador].Mano.length; i++)
+            {
+                points += jugadores[jugador].Mano[i].Valor;
+            }
+            jugadores[jugador].Puntos = points;
+            return points;
+        }
+
+        //Actualiza los puntos
+        function updatePoints()
+        {
+            for (var i = 0 ; i < jugadores.length; i++)
+            {
+                getPoints(i);
+                document.getElementById('points_' + i).innerHTML = jugadores[i].Puntos;
+            }
+        }
+        
+        //Otra carta
+        function otraCarta()
+        {
+            // pop a card from the deck to the current player
+            // check if current player new points are over 21
+            var carta = baraja.pop();
+            jugadores[currentPlayer].Mano.push(carta);
+            entregarCarta(carta, currentPlayer);
+            updatePoints();
+            updateBaraja();
+            check();
+        }
+
+        function toco()
+        {
+            // move on to next player, if any
+            if (currentPlayer != jugadores.length-1) {
+                document.getElementById('player_' + currentPlayer).classList.remove('active');
+                currentPlayer += 1;
+                document.getElementById('player_' + currentPlayer).classList.add('active');
+            }
+
+            else {
+                end();
+            }
+        }
+
+        function end()
+        {
+            var winner = -1;
+            var score = 0;
+
+            for(var i = 0; i < jugadores.length; i++)
+            {
+                if (jugadores[i].Puntos > score && jugadores[i].Puntos < 22)
+                {
+                    winner = i;
+                }
+
+
+                score = jugadores[i].Puntos;
+            }
+
+
+            document.getElementById('status').innerHTML = 'Winner: Player ' + jugadores[winner].ID;
+           
+            if(jugadores[0].Puntos == jugadores[1].Puntos){
+            	document.getElementById('status').innerHTML = 'Player: ' + jugadores[currentPlayer].ID + ' EMPATO';
+            }
+            deshabilitarBtn();
+            
+        }
+
+        function deshabilitarBtn(){
+        	btnToco = document.getElementById('btnToco');
+	        btnToco.disabled = true;
+	        btnOtraCarta = document.getElementById('btnOtraCarta');    
+	        btnOtraCarta.disabled = true;        
+        }
+        function habilitarBtn(){
+        	btnToco = document.getElementById('btnToco');
+	        btnToco.disabled = false;
+	        btnOtraCarta = document.getElementById('btnOtraCarta');    
+	        btnOtraCarta.disabled = false;    
+        }
+
+        function check()
+        {
+            if (jugadores[currentPlayer].Puntos > 21)
+            {
+                document.getElementById('status').innerHTML = 'Player: ' + jugadores[currentPlayer].ID + ' LOST';
+
+                deshabilitarBtn();
+            }
+
+        }
+
+
+        function updateBaraja()
+        {
+            document.getElementById('deckcount').innerHTML = baraja.length;
+        }
+
+        window.addEventListener('load', function(){
+            crearBaraja();
+            shuffle();
+            createPlayers(1);
+        });
+
+        function start()
+        {
+            // deal 2 cards to every player object
+            currentPlayer = 0;
+            /*crearBaraja();
+            shuffle();*/
+            createPlayers(2);
+            createPlayersUI();
+            repartirManos();
+            document.getElementById('player_' + currentPlayer).classList.add('active');
+            habilitarBtn();
+            document.getElementById('status').innerHTML = 'ES HORA DEL JUEGO';
+        }
+        function resetGame(){
+        	currentPlayer = 0;
+            crearBaraja();
+            shuffle();
+            createPlayers(2);
+            createPlayersUI();
+            repartirManos();
+            document.getElementById('player_' + currentPlayer).classList.add('active');
+            habilitarBtn();
+            document.getElementById('status').innerHTML = 'ES HORA DEL JUEGO';
+        }
+
+        </script>
+        <style>
+            .game
+        {
+            width: 720px;
+            border: solid 1px #ddd;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .card{
+            width: 70px;
+            height: 100px;
+            padding: 10px;
+            border: solid 1px #808080;
+            background-color: white;
+            display: inline-block;
+            border-radius: 10px;
+            font-size: 8pt;
+            text-align: center;
+            margin: 3px;
+        }
+
+        .players{
+            float:left;
+            width: 500px;
+        }
+
+        .player{
+            width: 40%;
+            border: solid 2px #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            display: inline-block;
+            margin:1%;
+            vertical-align: top;
+        }
+
+        .player.active{
+            border: solid 2px #1caff6;
+        }
+
+        .points{
+            text-align: center;
+            font-size: 20pt;
+            font-weight: bold;
+            margin: 10px;
+        }
+
+        .deck{
+            float:right;
+            width: 200px;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="game">
+            <h1>
+                Blackjack
+            </h1>
+            <input class="btn" onclick="start()" type="button" value="Repartir Manos" id="btnIniciar" />
+            <input class="btn" onclick="otraCarta()" type="button" value="Otra carta" id="btnOtraCarta" />
+            <input class="btn" onclick="toco()" type="button" value="Toco" id="btnToco" />
+            <input class="btn" onclick="resetGame()" type="button" value="Reiniciar Juego" id="btnReiniciar" />
+            <div class="players" id="players">
+            </div>
+            <div class="deck" id="deck">
+                <div class="card" id="deckcount">
+                    52
+                </div>
+                <div class="status" id="status">
+                </div>
+            </div>
+            <div class="clear">
+            </div>
+        </div>
+    </body>
+</html>
